@@ -11,8 +11,8 @@
         1. Further processing the received data and split it to training and validation datasets for
            model training
 
-    Date: 2023/7/21
-    Ver.: 0.1a
+    Date: 2023/7/25
+    Ver.: 0.1b
     Author:
     Reference: https://medium.com/renee0918/python-%E7%88%AC%E5%8F%96%E5%80%8B%E8%82%A1%E6%AD%B7%E5%B9%B4%E8%82%A1%E5%83%B9%E8%B3%87%E8%A8%8A-b6bc594c8a95B
 """
@@ -85,6 +85,7 @@ def craw_stock(stock_number, start_month, keep_it_local=False):
 
     :param stock_number: stock number to query
     :param start_month: start date of this query
+    :param keep_it_local: bool to determine if the replied data has to be stored locally
     :return: Pandas dataframes
     """
     b_month = datetime.date(*[int(x) for x in start_month.split('-')])
@@ -201,10 +202,27 @@ def plot_stock_data(dataframe, stock_info):
     return
 
 
+def get_list_value_from_dataframe(df, field):
+    """
+    Get the field values to list of date
+
+    :param df: source dataframe
+    :param field: selected value list of the field
+    :return: time_list, value_list
+    """
+    time_list = df.index.tolist()
+    value_list = df[field].values.tolist()
+
+    return time_list, value_list
+
+
 # Crawling the stock information from TWSE
 df = craw_stock(stock, begin_date, True)
 # dataframe_info(df)
 df.set_index("日期", inplace=True)
+
+time_series, value_series = get_list_value_from_dataframe(df, '收盤價')
+
 
 # Convert the raw dataformat to the format ready to plot
 df = convert_dataframe_format(df)
