@@ -11,10 +11,13 @@
         1. Further processing the received data and split it to training and validation datasets for
            model training
 
-    Date: 2023/7/25
-    Ver.: 0.1b
-    Author:
-    Reference: https://medium.com/renee0918/python-%E7%88%AC%E5%8F%96%E5%80%8B%E8%82%A1%E6%AD%B7%E5%B9%B4%E8%82%A1%E5%83%B9%E8%B3%87%E8%A8%8A-b6bc594c8a95B
+    Date: 2023/7/26
+    Ver.: 0.1c
+    Author: maoyi.fan@gmail.com
+    Reference:
+
+    Revision History:
+        v. 0.1c: added simple command line interface and argument parser
 """
 # import package
 from dateutil import rrule
@@ -26,9 +29,11 @@ import numpy as np
 import json
 import time
 import ssl
+import sys
+import stk_argv_parser as argpsr
 
-stock = "2330"
-begin_date = "2023-01-01"
+# stock = "2330"
+# begin_date = "2023-04-01"
 
 
 def save_response(response, stock_number, date):
@@ -94,7 +99,9 @@ def craw_stock(stock_number, start_month, keep_it_local=False):
 
     result = pd.DataFrame()
     for dt in rrule.rrule(rrule.MONTHLY, dtstart=b_month, until=e_month):
+        print(f'requesting stock info of {dt.strftime("%Y-%m-%d")}', end=" ")
         result = pd.concat([result, craw_one_month(stock_number, dt, keep_it_local)], ignore_index=True)
+        print(f'received stock info of {dt.strftime("%Y-%m-%d")}')
         time.sleep(2000.0 / 1000.0)
 
     return result
@@ -216,21 +223,55 @@ def get_list_value_from_dataframe(df, field):
     return time_list, value_list
 
 
-# Crawling the stock information from TWSE
-df = craw_stock(stock, begin_date, True)
-# dataframe_info(df)
-df.set_index("日期", inplace=True)
+def store_dataframe_to_csv(df, stk_symbol, start_date):
+    """
+    Store dataframe received to a local CSV file
 
-time_series, value_series = get_list_value_from_dataframe(df, '收盤價')
+    :param df: pandas.DataFrame of the received response
+    :param stk_symbol: string, stock symbol or id
+    :param start_date: string, starting date of the received data
+    :return:
+    """
+    df.to_csv(f'{stk_symbol}_stock_data_{start_date}.csv', index=True)
+
+    return
 
 
-# Convert the raw dataformat to the format ready to plot
-df = convert_dataframe_format(df)
+def main(argv):
+    """
+    Main function of this module, primarily to exercise the supported functions
 
-# Plot the response of the specified field
-plot_stock_data(df, '收盤價')
+    :param argv: arguments passed to this program from command prompt
+    :return:
+    """
 
-# Plot the response of specified fields
-plot_stock_data(df, ('收盤價', '成交金額'))
+    op = argpsr.operation_parameters(argv)
+    stock = op.stock_symbol
+    begin_date = op.start_date
 
-plt.show()
+    # Crawling the stock information from TWSE
+    df = craw_stock(stock, begin_date, op.save_individual)
+
+    # dataframe_info(df)
+    df.set_index("日期", inplace=True)
+
+    time_series, value_series = get_list_value_from_dataframe(df, '收盤價')
+
+    if op.save_consolidate:
+        # Store dataframe to a local CSV file for later use
+        store_dataframe_to_csv(df, stock, begin_date)
+
+    # Convert the raw dataformat to the format ready to plot
+    df = convert_dataframe_format(df)
+
+    # Plot the response of the specified field
+    plot_stock_data(df, '收盤價')
+
+    # Plot the response of specified fields
+    plot_stock_data(df, ('收盤價', '成交金額'))
+
+    plt.show()
+
+
+if __name__ == '__main__':
+    main(sys.argv[1:])
