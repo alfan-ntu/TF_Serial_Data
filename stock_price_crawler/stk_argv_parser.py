@@ -29,23 +29,24 @@ class operation_parameters:
         try:        # parse input argument; valid arguments include -h, -s, -d
             opts, args = getopt.getopt(argv, "hic:s:d:",
                                        ["help","individual",
-                                        "consolidate=", "stock_symbol=",
+                                        "consolidate=", "symbol=",
                                         "start_date="])
         except getopt.GetoptError:
             print("Syntax error!")
+            self.syntax_info()
             sys.exit(2)
         for opt, arg in opts:
             if opt in ("-h", "--help"):
-                print("print command syntax ....")
+                self.syntax_info()
                 sys.exit()
-            elif opt in ("-i", "--individual"):
+            elif opt in ("-i", "--indiv"):
                 self.save_individual = True
-            elif opt in ("-c", "--consolidate"):
+            elif opt in ("-c", "--consolid"):
                 if arg in ("True", "true"):
                     self.save_consolidate = True
                 elif arg in ("False", "false"):
                     self.save_consolidate = False
-            elif opt in ("-s", "--stock_symbol"):   # stock id being queried
+            elif opt in ("-s", "--symbol"):   # stock id being queried
                 self.stock_symbol = arg
             elif opt in ("-d", "--start_date"):     # query start date
                 self.start_date = arg
@@ -61,5 +62,22 @@ class operation_parameters:
             argv_valid = False
         if not argv_valid :
             print("Syntax error!")
+            self.syntax_info()
             sys.exit(2)
 
+    def syntax_info(self):
+        print("NAME\n\tstock_price_crawler - crawl stock information")
+        print("SYNOPSIS\n\tstock_price_crawler [OPTIONS]...")
+        print("DESCRIPTION\n\tCrawl the stock information from TWSE according to the command option.")
+        print("\tCommand options include:")
+        print("\t\t-h, --help\t\tprint this help information")
+        print("\t\t-i,"
+              "\n\t\t--indiv[=False/True]\tsave stock information of individual time slots")
+        print("\t\t\t\t\tDefault value is False")
+        print("\t\t-c,",
+              "\n\t\t--consolid[=True/False]\tsave consolidate stock information received")
+        print("\t\t\t\t\tDefault value is True")
+        print("\t\t-s,",
+              "--symbol[=ID]\tsymbol ID of the requested stock, mandatory field")
+        print("\t\t-d,",
+              "--date[=yyyy-mm-dd]\tstart date of this query")

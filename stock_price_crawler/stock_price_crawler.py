@@ -10,6 +10,7 @@
     ToDo's:
         1. Further processing the received data and split it to training and validation datasets for
            model training
+        2. Considering using Yahoo Finance API (yfinance) to grab stock information provided by Yahoo
 
     Date: 2023/7/26
     Ver.: 0.1c
@@ -182,7 +183,7 @@ def plot_stock_data(dataframe, stock_info):
     if type(stock_info) is tuple:
         number_of_subplot = len(stock_info)
         fig, axs = plt.subplots(number_of_subplot)
-        plt.subplots_adjust(hspace=0.5)
+        plt.subplots_adjust(hspace=0.6)
         p = 0
         for info in stock_info:
             ylabel = field_dictionary.get(info)
@@ -190,6 +191,7 @@ def plot_stock_data(dataframe, stock_info):
                                         figsize=(fig_w, fig_h*number_of_subplot),
                                         grid=True,
                                         legend=False,
+                                        title="Stock Info " + ylabel,
                                         xlabel='Date',
                                         ylabel=ylabel,
                                         rot=20
@@ -200,6 +202,7 @@ def plot_stock_data(dataframe, stock_info):
         dataframe.loc[:][stock_info].plot(figsize=(fig_w, fig_h),
                                           grid=True,
                                           legend=False,
+                                          title="Stock Info " + ylabel,
                                           xlabel='Date',
                                           ylabel=ylabel,
                                           rot=20)
