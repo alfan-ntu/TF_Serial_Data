@@ -72,7 +72,7 @@ class operation_parameters:
         print("\tCommand options include:")
         print("\t\t-h, --help\t\tprint this help information")
         print("\t\t-i,"
-              "\n\t\t--indiv[=False/True]\tsave stock information of individual time slots")
+              "\n\t\t--indiv[=False/True]\tsave stock information of individual time_list slots")
         print("\t\t\t\t\tDefault value is False")
         print("\t\t-c,",
               "\n\t\t--consolid[=True/False]\tsave consolidate stock information received")

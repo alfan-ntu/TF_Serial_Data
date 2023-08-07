@@ -182,7 +182,7 @@ class stock_crawler:
         if type(info_to_plot) is tuple:
             number_of_subplot = len(info_to_plot)
             fig, axs = plt.subplots(number_of_subplot)
-            plt.subplots_adjust(hspace=0.5)
+            plt.subplots_adjust(hspace=0.6)
             p = 0
             for info in info_to_plot:
                 ylabel = self.field_dictionary.get(info)

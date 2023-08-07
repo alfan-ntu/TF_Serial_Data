@@ -3,8 +3,8 @@
         1. Use urllib.request to compose and send a URL request to Taiwan Stock Exchange Corporation
         2. Use json, pandas libraries: json to parse returned JSON response and store the returned
            data to Pandas dataframes
-        3. Use matplotlib.pyplot to plot the selected fields to time chart
-        4. A component of an AI application to exercise time series prediction techniques from
+        3. Use matplotlib.pyplot to plot the selected fields to time_list chart
+        4. A component of an AI application to exercise time_list series prediction techniques from
            certificated course of Coursera
 
     ToDo's:
