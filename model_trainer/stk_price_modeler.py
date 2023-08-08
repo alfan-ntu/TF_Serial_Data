@@ -10,13 +10,14 @@
     ToDo's:
         1.
 
-    Date: 2023/8/2
-    Ver.: 0.2a
+    Date: 2023/8/8
+    Ver.: 0.2b
     Author: maoyi.fan@gmail.com
     Reference:
 
     Revision History:
         v. 0.2a: newly created
+        v. 0.2b: neural network modeler preliminarily done
 """
 
 import tensorflow as tf
@@ -34,6 +35,7 @@ class dnn_modeler:
         self.data_format = "csv"
         # self.split_ratio = 0.8
         self.__split_ratio = 0.8
+        self.__split_time = None
         self.time_list = []
         self.series = []
         self.time_train = []
@@ -67,6 +69,10 @@ class dnn_modeler:
         else:
             self.__split_ratio = value
         return
+
+    @property
+    def split_time(self) -> int:
+        return self.__split_time
 
     @property
     def window_size(self) -> int:
@@ -163,7 +169,7 @@ class dnn_modeler:
         """
         Split the source data, stored in self.series into training dataset and
         validation dataset with the split ratio specified in the split_ratio
-
+        Data is split and stored to x_train/time_train and x_valid/time_valid
         :param split_ratio: dataset split ratio
         :return: Ture if basic sanity check is OK, False otherwise
         """
@@ -183,6 +189,7 @@ class dnn_modeler:
 
         data_length = len(self.time_list)
         split_time = math.ceil(data_length * split_ratio)
+        self.__split_time = split_time
         print(f'Split ratio: {split_ratio}, going to split the data series of length {data_length} at {split_time}')
         self.time_train = self.time_list[:split_time]
         self.x_train = self.series[:split_time]
@@ -225,7 +232,7 @@ class dnn_modeler:
 
         return dataset
 
-    def model_configuration(self) -> tf.keras.Model:
+    def create_model(self) -> tf.keras.Model:
         model = tf.keras.models.Sequential([
             tf.keras.layers.Conv1D(filters=64,
                                    kernel_size=3,
@@ -240,10 +247,58 @@ class dnn_modeler:
             tf.keras.layers.Lambda(lambda x: x * 800)
         ])
         self.model = model
-        # # print the model summary
-        # model.summary()
+        self.initial_weights = model.get_weights()
+        # train the model at a specified learning rate, which was obtained from previous
+        # trial training using LearningRateScheduler callbacks
+        learning_rate = self.__learning_rate
+        optimizer = tf.keras.optimizers.SGD(learning_rate=learning_rate,
+                                            momentum=0.9)
+        # Set the training parameters
+        model.compile(loss=tf.keras.losses.Huber(),
+                      optimizer=optimizer,
+                      metrics=['mae'])
 
         return self.model
 
+    def save_model(self, path_to_model):
+        """
+        Accept the path_to_model argument and store the trained model to the specified
+        path_to_model
+        :param path_to_model: specified path and filename to store the trained model
+        :return:
+        """
+        self.model.save(path_to_model)
+        return
+
+    def load_model(self, path_to_model):
+        self.model = tf.keras.models.load_model(path_to_model)
+        return self.model
+
+    def model_forecast(self, series, window_size=None, batch_size=None):
+        """
+        Perform model forecast on the input data series
+        :param series:
+        :param window_size:
+        :param batch_size:
+        :return:
+        """
+        window_size = window_size if window_size is not None else self.__window_size
+        batch_size = batch_size if batch_size is not None else self.__batch_size
+        # Generate a TF Dataset from the series values
+        dataset = tf.data.Dataset.from_tensor_slices(series)
+
+        # Window the data but only keep those with the specified window size
+        dataset = dataset.window(size=window_size, shift=1, drop_remainder=True)
+
+        # Flatten the windows by putting its elements in a single batch
+        dataset = dataset.flat_map(lambda w: w.batch(window_size))
+
+        # Create batches of windows
+        dataset = dataset.batch(batch_size).prefetch(1)
+
+        # Get predictions on the entire dataset
+        forecast = self.model.predict(dataset)
+
+        return forecast
 
 

@@ -52,7 +52,10 @@ def plot_series(x, y, format='-', start=0, end=None, title=None,
 
     # label the x-axis and arrange xticks interval
     plt.xlabel(xlabel)
-    xm = (int(len(x)/100)+1) * 100
+    if len(x) < 300:
+        xm = len(x)
+    else:
+        xm = (int(len(x)/100) + 1) * 100
     step = int(xm/10)
     plt.xticks(np.arange(0, stop=xm, step=step), rotation=45)
 
